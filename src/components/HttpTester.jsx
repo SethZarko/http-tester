@@ -12,6 +12,8 @@ export const HttpTester = () => {
   const date = new Date()
   const year = date.getFullYear()
 
+  const errorStr = ['Error', 'error', 'Unauthorized']
+
   const sendRequest = async () => {
     const options = {
       method,
@@ -162,7 +164,7 @@ export const HttpTester = () => {
 
       <div className="output-container">
         <h4>API Response Output:</h4>
-        <pre className={response.includes('Error') ? "response-error" : "response-success"}>{response}</pre>
+        <pre className={errorStr.some(sub => response.includes(sub)) ? "response-error" : "response-success"}>{response}</pre>
       </div>
       <hr style={{ width: 100 }} />
       <br />
