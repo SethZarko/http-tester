@@ -120,6 +120,7 @@ p {
   @media (max-width: 1375px) {
     p {
       display: block;
+      text-align: center;
     }
 
     section {

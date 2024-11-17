@@ -9,6 +9,9 @@ export const HttpTester = () => {
   const [bodyFields, setBodyFields] = useState([{ key: "", value: "" }]);
   const [response, setResponse] = useState("");
 
+  const date = new Date()
+  const year = date.getFullYear()
+
   const sendRequest = async () => {
     const options = {
       method,
@@ -161,6 +164,12 @@ export const HttpTester = () => {
         <h4>API Response Output:</h4>
         <pre className={response.includes('Error') ? "response-error" : "response-success"}>{response}</pre>
       </div>
+      <hr style={{ width: 100 }} />
+      <br />
+
+      <footer>
+        <small>Seth Z. Web Dev {year}&copy;</small>
+      </footer>
     </section>
   );
 };
