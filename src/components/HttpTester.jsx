@@ -71,7 +71,7 @@ export const HttpTester = () => {
     <section>
 
       <h1>HTTP Request Tester</h1>
-      <p>Sorry, not built for small screens (yet....)</p>
+      <p>Sorry, built for large screens only (for now....)</p>
 
       <div className="root-container">
         <div className="upload-container">
@@ -129,10 +129,9 @@ export const HttpTester = () => {
                 </div>
               ))}
               <button onClick={addBodyField}>Add Field</button>
-            </div>
-          </div>
+          
 
-          <div className="file-container">
+            <div className="file-container">
             <div className="file-sub-container">
               <h3>File Upload</h3>
               <input type="file" onChange={(e) => setFile(e.target.files[0])} />
@@ -146,16 +145,21 @@ export const HttpTester = () => {
                 onChange={(e) => setToken(e.target.value)}
               />
             </div>
+            </div>
           </div>
+
+          </div>
+
+          
+
         </div>
         <button onClick={sendRequest}>Send Request</button>
       </div>
-
       <hr style={{ width: 100 }} />
 
       <div className="output-container">
         <h4>API Response Output:</h4>
-        <pre>{response}</pre>
+        <pre className={response.includes('Error') ? "response-error" : "response-success"}>{response}</pre>
       </div>
     </section>
   );
