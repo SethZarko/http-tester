@@ -4,6 +4,7 @@ export const HttpTester = () => {
   const [method, setMethod] = useState("GET");
   const [url, setUrl] = useState("");
   const [headers, setHeaders] = useState("{}");
+  const [responseHeader, setResponseHeader] = useState("");
   const [token, setToken] = useState("");
   const [file, setFile] = useState(null);
   const [fileKey, setFileKey] = useState(null);
@@ -17,13 +18,31 @@ export const HttpTester = () => {
   const errorStr = ["Error", "error", "Unauthorized"];
 
   const sendRequest = async () => {
-    const options = {
-      method,
-      headers: {
-        ...JSON.parse(headers || "{}"),
-        Authorization: token ? `Bearer ${token}` : undefined,
-      },
-    };
+    if (!url.trim()) {
+      setResponse("Error: URL is required.");
+      setResponseCode(400);
+      return;
+    }
+
+    let parsedHeaders = {};
+    try {
+      // Attempt to parse headers as JSON
+      parsedHeaders = JSON.parse(headers || "{}");
+    } catch (error) {
+      // Display user-friendly error in the response section
+      setResponse(
+        `Headers are not in valid JSON format. Example: {"key": "value"}\n\nError Details: ${error.message}`
+      );
+      setResponseCode(400); // Bad Request Code
+      return; // Exit function early
+    }
+
+    if (token) {
+      parsedHeaders.Authorization = `Bearer ${token}`;
+    }
+
+    // Proceed with the rest of the logic if no errors
+    const options = { method, headers: parsedHeaders };
 
     if (method !== "GET" && file) {
       const formData = new FormData();
@@ -37,14 +56,31 @@ export const HttpTester = () => {
           .map(({ key, value }) => [key, value])
       );
       options.body = JSON.stringify(bodyObject);
-      options.headers = {
-        ...options.headers,
-        "Content-Type": "application/json",
-      };
+      options.headers["Content-Type"] = "application/json";
     }
 
     try {
+      // Render headers being sent in the request
+      setResponseHeader(JSON.stringify(parsedHeaders, null, 2));
+
       const res = await fetch(url, options);
+
+      const allHeaders = {};
+      res.headers.forEach((value, key) => {
+        allHeaders[key] = value;
+      });
+
+      setResponseHeader(
+        JSON.stringify(
+          {
+            requestHeaders: parsedHeaders,
+            responseHeaders: allHeaders,
+          },
+          null,
+          2
+        )
+      );
+
       const contentType = res.headers.get("content-type");
 
       if (!res.ok) {
@@ -54,15 +90,24 @@ export const HttpTester = () => {
       if (contentType && contentType.includes("application/json")) {
         const data = await res.json();
         setResponse(JSON.stringify(data, null, 2));
-        setResponseCode(res.status);
       } else {
         const text = await res.text();
         setResponse(text);
-        setResponseCode(res.status);
       }
+
+      setResponseCode(res.status);
     } catch (error) {
       setResponseCode(500);
-      setResponse("Error: " + error.message);
+      setResponse(`Error: ${error.message}`);
+    }
+  };
+
+  const validateHeaders = (value) => {
+    try {
+      JSON.parse(value);
+      return true;
+    } catch {
+      return false;
     }
   };
 
@@ -83,7 +128,6 @@ export const HttpTester = () => {
 
   return (
     <section>
-      <h1>HTTP Request Tester</h1>
       <p>Sorry, built for large screens only (for now....)</p>
 
       <div className="root-container">
@@ -98,19 +142,30 @@ export const HttpTester = () => {
                 <option value="PATCH">PATCH</option>
                 <option value="DELETE">DELETE</option>
               </select>
-
               <h3>URL</h3>
               <input
                 type="text"
                 placeholder="URL"
                 onChange={(e) => setUrl(e.target.value)}
               />
-
               <h3>Headers</h3>
               <textarea
-                placeholder="Headers (JSON)"
-                onChange={(e) => setHeaders(e.target.value)}
+                placeholder='Headers: JSON format, e.g., {"X-Custom-Header": "Value"}'
+                value={headers}
+                onChange={(e) => {
+                  const value = e.target.value;
+                  setHeaders(value);
+                  if (!validateHeaders(value)) {
+                    setResponse("Invalid JSON format for headers.");
+                  } else {
+                    setResponse(""); // Clear error
+                  }
+                }}
               ></textarea>
+              <div>
+                <h4>API Header Response Output:</h4>
+                <pre>{responseHeader}</pre>
+              </div>
             </div>
 
             <div className="upload-sub-sub-container">
@@ -174,30 +229,32 @@ export const HttpTester = () => {
       <hr style={{ width: 100 }} />
 
       <div className="output-container">
-        <h4>API Response Output:</h4>
-        <h5>
-          Response Status Code:{" "}
-          <span
+        <div>
+          <h4>API Response Output:</h4>
+          <h5>
+            Response Status Code:{" "}
+            <span
+              className={
+                responseCode > 0 && responseCode < 400
+                  ? "status-success"
+                  : responseCode >= 400 && responseCode < 500
+                  ? "status-warn"
+                  : "status-error"
+              }
+            >
+              {responseCode}
+            </span>
+          </h5>
+          <pre
             className={
-              responseCode > 0 && responseCode < 400
-                ? "status-success"
-                : responseCode >= 400 && responseCode < 500
-                ? "status-warn"
-                : "status-error"
+              errorStr.some((sub) => response.includes(sub))
+                ? "response-error"
+                : "response-success"
             }
           >
-            {responseCode}
-          </span>
-        </h5>
-        <pre
-          className={
-            errorStr.some((sub) => response.includes(sub))
-              ? "response-error"
-              : "response-success"
-          }
-        >
-          {response}
-        </pre>
+            {response}
+          </pre>
+        </div>
       </div>
       <hr style={{ width: 100 }} />
       <br />
