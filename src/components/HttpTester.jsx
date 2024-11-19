@@ -128,6 +128,7 @@ export const HttpTester = () => {
 
   return (
     <section>
+    <h1>HTTP - API Endpoint Tester</h1>
       <p>Sorry, built for large screens only (for now....)</p>
 
       <div className="root-container">
