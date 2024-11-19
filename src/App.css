@@ -1,12 +1,12 @@
-body {
-    font-family: 'Arial', sans-serif;
-    background-color: #121212;
-    color: #e0e0e0;
-}
+  body {
+      font-family: 'Arial', sans-serif;
+      background-color: #121212;
+      color: #e0e0e0;
+  }
 
-p {
-  display: none;
-}
+  p {
+    display: none;
+  }
   
   h1 {
     text-align: center;
@@ -113,8 +113,24 @@ p {
     color: #00ff6c; 
   }
 
+  .status-success {
+    color: #00ff6c; 
+  }
+
   .response-error {
     color: red;
+  }
+
+  .status-error {
+    color: red;
+  }
+
+  .status-warn {
+    color: #ffbf00; 
+  }
+
+  .status-standard {
+    color: white;
   }
 
   @media (max-width: 1375px) {

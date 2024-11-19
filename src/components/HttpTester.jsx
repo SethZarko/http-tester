@@ -6,13 +6,15 @@ export const HttpTester = () => {
   const [headers, setHeaders] = useState("{}");
   const [token, setToken] = useState("");
   const [file, setFile] = useState(null);
+  const [fileKey, setFileKey] = useState(null);
   const [bodyFields, setBodyFields] = useState([{ key: "", value: "" }]);
   const [response, setResponse] = useState("");
+  const [responseCode, setResponseCode] = useState(null);
 
-  const date = new Date()
-  const year = date.getFullYear()
+  const date = new Date();
+  const year = date.getFullYear();
 
-  const errorStr = ['Error', 'error', 'Unauthorized']
+  const errorStr = ["Error", "error", "Unauthorized"];
 
   const sendRequest = async () => {
     const options = {
@@ -25,7 +27,7 @@ export const HttpTester = () => {
 
     if (method !== "GET" && file) {
       const formData = new FormData();
-      formData.append("imagePath", file);
+      formData.append(fileKey, file);
       bodyFields.forEach(({ key, value }) => formData.append(key, value));
       options.body = formData;
     } else if (method !== "GET") {
@@ -43,16 +45,23 @@ export const HttpTester = () => {
 
     try {
       const res = await fetch(url, options);
-
       const contentType = res.headers.get("content-type");
+
+      if (!res.ok) {
+        setResponseCode(res.status);
+      }
+
       if (contentType && contentType.includes("application/json")) {
         const data = await res.json();
         setResponse(JSON.stringify(data, null, 2));
+        setResponseCode(res.status);
       } else {
         const text = await res.text();
         setResponse(text);
+        setResponseCode(res.status);
       }
     } catch (error) {
+      setResponseCode(500);
       setResponse("Error: " + error.message);
     }
   };
@@ -74,7 +83,6 @@ export const HttpTester = () => {
 
   return (
     <section>
-
       <h1>HTTP Request Tester</h1>
       <p>Sorry, built for large screens only (for now....)</p>
 
@@ -134,29 +142,32 @@ export const HttpTester = () => {
                 </div>
               ))}
               <button onClick={addBodyField}>Add Field</button>
-          
 
-            <div className="file-container">
-            <div className="file-sub-container">
-              <h3>File Upload</h3>
-              <input type="file" onChange={(e) => setFile(e.target.files[0])} />
-            </div>
+              <div className="file-container">
+                <div className="file-sub-container">
+                  <h3>File Upload</h3>
+                  <input
+                    type="text"
+                    placeholder="File Key Name"
+                    onChange={(e) => setFileKey(e.target.value)}
+                  />
+                  <input
+                    type="file"
+                    onChange={(e) => setFile(e.target.files[0])}
+                  />
+                </div>
 
-            <div className="auth-container">
-              <h3>Auth</h3>
-              <input
-                type="text"
-                placeholder="Bearer Token"
-                onChange={(e) => setToken(e.target.value)}
-              />
-            </div>
+                <div className="auth-container">
+                  <h3>Auth</h3>
+                  <input
+                    type="text"
+                    placeholder="Bearer Token"
+                    onChange={(e) => setToken(e.target.value)}
+                  />
+                </div>
+              </div>
             </div>
           </div>
-
-          </div>
-
-          
-
         </div>
         <button onClick={sendRequest}>Send Request</button>
       </div>
@@ -164,7 +175,29 @@ export const HttpTester = () => {
 
       <div className="output-container">
         <h4>API Response Output:</h4>
-        <pre className={errorStr.some(sub => response.includes(sub)) ? "response-error" : "response-success"}>{response}</pre>
+        <h5>
+          Response Status Code:{" "}
+          <span
+            className={
+              responseCode > 0 && responseCode < 400
+                ? "status-success"
+                : responseCode >= 400 && responseCode < 500
+                ? "status-warn"
+                : "status-error"
+            }
+          >
+            {responseCode}
+          </span>
+        </h5>
+        <pre
+          className={
+            errorStr.some((sub) => response.includes(sub))
+              ? "response-error"
+              : "response-success"
+          }
+        >
+          {response}
+        </pre>
       </div>
       <hr style={{ width: 100 }} />
       <br />
